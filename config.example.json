@@ -1,0 +1,38 @@
+{
+  "source_playlist_ids": [
+    "1b418bb8-90a7-4f87-901d-707993838346",
+    "da0d8a6d-de60-4528-9f1a-1316f054b4c4"
+  ],
+  "destination_playlist_name": "New Music",
+  "destination_playlist_id": "",
+  "session_path": "tidal_session.json",
+  "genre_blocklist": [
+    "hip hop",
+    "hip-hop",
+    "rap",
+    "r&b",
+    "rnb",
+    "rhythm and blues",
+    "reggaeton"
+  ],
+  "genre_detection": "tidal",
+  "unknown_genre_policy": "keep",
+  "dry_run": false,
+  "processed_tracks_path": "cache/processed_tracks.json",
+  "tidal": {
+    "genre_cache_path": "cache/tidal_genres.json",
+    "min_interval_seconds": 0.1
+  },
+  "spotify": {
+    "cache_path": "cache/spotify.json",
+    "min_interval_seconds": 0.1
+  },
+  "rotate": {
+    "master_playlist_id": "",
+    "archive_playlist_id": "",
+    "max_tracks": 200
+  },
+  "like": {
+    "playlist_prefix": "_CBM"
+  }
+}

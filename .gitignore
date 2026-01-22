@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+
+# Environment and secrets
+.env
+*.env.local
+
+# Session and credentials
+tidal_session.json
+oauth.json
+browser.json
+
+# Configuration (contains personal playlist IDs)
+config.json
+
+# Cache files
+cache/
+
+# Logs
+logs/*.log
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
