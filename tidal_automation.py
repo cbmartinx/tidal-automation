@@ -404,8 +404,9 @@ class TidalAutomation:
         if self.spotify_client:
             self.spotify_client.save()
 
-        # Save processed tracks
-        save_json(self.processed_path, {"tracks": list(self.processed_tracks)})
+        # Save processed tracks (skip in dry-run mode)
+        if not self.dry_run:
+            save_json(self.processed_path, {"tracks": list(self.processed_tracks)})
         log.info("Done!")
 
     def run_rotate(self) -> None:
