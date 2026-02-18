@@ -211,6 +211,10 @@ class TidalAutomation:
         self.spotify_client: SpotifyClient | None = None
         self.processed_path = Path(config.get("processed_tracks_path", "cache/processed_tracks.json"))
         self.processed_tracks: set[str] = set(load_json(self.processed_path).get("tracks", []))
+        self.removed_path = Path("cache/removed_tracks.json")
+        self.removed_tracks: set[str] = set(load_json(self.removed_path).get("tracks", []))
+        self.snapshot_path = Path("cache/destination_snapshot.json")
+        self.destination_snapshot: set[str] = set(load_json(self.snapshot_path).get("tracks", []))
 
     def login(self) -> bool:
         """Initialize Tidal session from saved credentials."""
@@ -378,12 +382,24 @@ class TidalAutomation:
             existing_track_ids = self._get_destination_track_ids(dest_playlist)
             log.info(f"Destination playlist has {len(existing_track_ids)} existing tracks")
 
+        # Detect user removals: tracks in our last snapshot that are no longer in the playlist
+        if self.destination_snapshot:
+            removed = self.destination_snapshot - existing_track_ids
+            if removed:
+                log.info(f"Detected {len(removed)} tracks removed by user — permanently excluding")
+                self.removed_tracks.update(removed)
+
+        if self.removed_tracks:
+            log.info(f"Total removed tracks (never re-add): {len(self.removed_tracks)}")
+
         # Filter all source playlists
         all_tracks_to_add: list[tidalapi.Track] = []
         for source_id in source_ids:
             filtered = self.filter_playlist(source_id)
-            # Remove duplicates (already in destination)
-            new_tracks = [t for t in filtered if str(t.id) not in existing_track_ids]
+            # Remove duplicates (already in destination) and user-removed tracks
+            new_tracks = [t for t in filtered
+                          if str(t.id) not in existing_track_ids
+                          and str(t.id) not in self.removed_tracks]
             all_tracks_to_add.extend(new_tracks)
             # Update existing set to avoid duplicates between sources
             existing_track_ids.update(str(t.id) for t in new_tracks)
@@ -397,6 +413,7 @@ class TidalAutomation:
             track_ids = [str(t.id) for t in all_tracks_to_add]
             log.info(f"Adding {len(track_ids)} tracks to {dest_playlist.name}")
             dest_playlist.add(track_ids)
+            existing_track_ids.update(track_ids)
 
         # Save caches
         if self.genre_client:
@@ -404,9 +421,11 @@ class TidalAutomation:
         if self.spotify_client:
             self.spotify_client.save()
 
-        # Save processed tracks (skip in dry-run mode)
+        # Save processed tracks, removed tracks, and destination snapshot (skip in dry-run mode)
         if not self.dry_run:
             save_json(self.processed_path, {"tracks": list(self.processed_tracks)})
+            save_json(self.removed_path, {"tracks": list(self.removed_tracks)})
+            save_json(self.snapshot_path, {"tracks": list(existing_track_ids)})
         log.info("Done!")
 
     def run_rotate(self) -> None:
